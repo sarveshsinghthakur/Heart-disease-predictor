@@ -1,7 +1,5 @@
-streamlit
-pandas
+fastapi
+uvicorn
+pydantic
 numpy
 scikit-learn
-xgboost
-seaborn
-matplotlib
