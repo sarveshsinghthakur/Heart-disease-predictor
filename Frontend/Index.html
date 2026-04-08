@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Heart Disease Prediction</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+
+        body {
+            background-color: #0e1117;
+            color: #fafafa;
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: #161b22;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #c9d1d9;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            background: #0e1117;
+            color: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #238636;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2ea043;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            display: none;
+        }
+
+        .positive {
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff7b72;
+            border: 1px solid #ff7b72;
+        }
+
+        .negative {
+            background: rgba(0, 255, 100, 0.15);
+            color: #3fb950;
+            border: 1px solid #3fb950;
+        }
+
+        @media(max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Heart Disease Predictor</h1>
+        <p class="subtitle">Minimal dark UI (Streamlit style)</p>
+
+        <div class="card">
+            <div class="grid">
+
+                <div class="form-group"><label>Age</label><input id="age" type="number" value="20"></div>
+                <div class="form-group"><label>Sex (1=Male,0=Female)</label><input id="sex" type="number" value="1">
+                </div>
+
+                <div class="form-group"><label>Chest Pain (cp)</label><input id="cp" type="number" value="3"></div>
+                <div class="form-group"><label>Resting BP</label><input id="trestbps" type="number" value="120"></div>
+
+                <div class="form-group"><label>Cholesterol</label><input id="chol" type="number" value="340"></div>
+                <div class="form-group"><label>Fasting Blood Sugar</label><input id="fbs" type="number" value="1"></div>
+
+                <div class="form-group"><label>Rest ECG</label><input id="restecg" type="number" value="1"></div>
+                <div class="form-group"><label>Max Heart Rate</label><input id="thalach" type="number" value="130">
+                </div>
+
+                <div class="form-group"><label>Exercise Angina</label><input id="exang" type="number" value="1"></div>
+                <div class="form-group"><label>Oldpeak</label><input id="oldpeak" type="number" step="0.1" value="1.2">
+                </div>
+
+                <div class="form-group"><label>Slope</label><input id="slope" type="number" value="1"></div>
+                <div class="form-group"><label>CA</label><input id="ca" type="number" value="1"></div>
+
+                <div class="form-group"><label>Thal</label><input id="thal" type="number" value="2"></div>
+
+            </div>
+
+            <button onclick="predict()">Predict</button>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        async function predict() {
+
+            const data = {
+                age: parseInt(age.value),
+                sex: parseInt(sex.value),
+                cp: parseInt(cp.value),
+                trestbps: parseFloat(trestbps.value),
+                chol: parseFloat(chol.value),
+                fbs: parseInt(fbs.value),
+                restecg: parseInt(restecg.value),
+                thalach: parseFloat(thalach.value),
+                exang: parseInt(exang.value),
+                oldpeak: parseFloat(oldpeak.value),
+                slope: parseInt(slope.value),
+                ca: parseInt(ca.value),
+                thal: parseInt(thal.value)
+            };
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = "Predicting...";
+
+            try {
+                const res = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok && result.prediction !== undefined) {
+                    resultDiv.className = result.prediction === 1 ? 'positive' : 'negative';
+                    resultDiv.innerHTML = result.prediction === 1
+                        ? "⚠️ Heart Disease Detected"
+                        : "✅ No Heart Disease";
+                } else {
+                    resultDiv.className = 'positive';
+                    resultDiv.innerHTML = "Error: " + (result.error || result.detail || "Unknown error");
+                }
+
+            } catch (err) {
+                resultDiv.className = 'positive';
+                resultDiv.innerHTML = "Server connection failed";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
