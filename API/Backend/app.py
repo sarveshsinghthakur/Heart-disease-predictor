@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import os
 import csv
+from xgboost import XGBClassifier
 
 app = FastAPI()
 
